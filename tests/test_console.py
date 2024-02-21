@@ -39,3 +39,54 @@ class TestConsole(unittest.TestCase):
             self.assertIn("'name': 'Hamida'", mockout.getvalue().strip())
             self.assertIn("height': 5.3", mockout.getvalue().strip())
             self.assertIn("'age': 23", mockout.getvalue().strip())
+
+class TestCreateCommand(unittest.TestCase):
+    def setUp(self):
+        """Set up the test"""
+        self.console = HBNBCommand()
+
+    def tearDown(self):
+        """Tear down the test"""
+        del self.console
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_create_valid_input(self, mock_stdout):
+        """Test create command with valid input"""
+        with patch('builtins.input', side_effect=['create BaseModel name="test"', 'EOF']):
+            self.console.cmdloop()
+
+        output = mock_stdout.getvalue().strip()
+        self.assertIn("test", output)  # Check if the object is created
+
+        # Clean up created objects
+        del storage.all()["BaseModel.test"]
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_create_invalid_class(self, mock_stdout):
+        """Test create command with invalid class name"""
+        with patch('builtins.input', side_effect=['create InvalidClass name="test"', 'EOF']):
+            self.console.cmdloop()
+
+        output = mock_stdout.getvalue().strip()
+        self.assertIn("** class doesn't exist **", output)  # Check for error message
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_create_missing_class_name(self, mock_stdout):
+        """Test create command with missing class name"""
+        with patch('builtins.input', side_effect=['create', 'EOF']):
+            self.console.cmdloop()
+
+        output = mock_stdout.getvalue().strip()
+        self.assertIn("** class name missing **", output)  # Check for error message
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_create_missing_parameters(self, mock_stdout):
+        """Test create command with missing parameters"""
+        with patch('builtins.input', side_effect=['create BaseModel', 'EOF']):
+            self.console.cmdloop()
+
+        output = mock_stdout.getvalue().strip()
+        self.assertIn("** parameters missing **", output)  # Check for error message
+
+if __name__ == '__main__':
+    unittest.main()
